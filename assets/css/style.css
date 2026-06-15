@@ -126,6 +126,10 @@ main.container { padding-top: 2rem; padding-bottom: 3rem; flex: 1; }
 
 .form-actions { display: flex; gap: .75rem; margin-top: 1.5rem; }
 
+.date-time-row { display: flex; gap: .75rem; }
+.date-time-row input[type="date"] { flex: 1.4; }
+.date-time-row input[type="time"] { flex: 1; }
+
 /* ===== Dashboard ===== */
 .dashboard-header {
     display: flex; align-items: center; justify-content: space-between;

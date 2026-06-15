@@ -39,7 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values['namen_cenitve']     = $_POST['namen_cenitve'] ?? '';
     $values['podlaga_vrednosti'] = $_POST['podlaga_vrednosti'] ?? '';
     $values['premisa_vrednosti'] = $_POST['premisa_vrednosti'] ?? '';
-    $values['prvi_ogled']        = trim($_POST['prvi_ogled'] ?? '');
+    $_datum = trim($_POST['prvi_ogled_datum'] ?? '');
+    $_cas   = trim($_POST['prvi_ogled_cas']   ?? '');
+    $values['prvi_ogled'] = ($_datum !== '' && $_cas !== '') ? $_datum . 'T' . $_cas : '';
 
     if ($values['naziv_narocnika'] === '')
         $errors['naziv_narocnika']  = 'Naziv naročnika je obvezen.';

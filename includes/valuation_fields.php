@@ -56,14 +56,18 @@ function selectOptions(array $options, string $selected): string {
     <?= fieldError($errors, 'premisa_vrednosti') ?>
 </div>
 
+<?php
+$_ts       = ($values['prvi_ogled'] !== '') ? strtotime($values['prvi_ogled']) : null;
+$_datePart = $_ts ? date('Y-m-d', $_ts) : '';
+$_timePart = $_ts ? date('H:i',   $_ts) : '';
+?>
 <div class="form-group <?= isset($errors['prvi_ogled']) ? 'has-error' : '' ?>">
-    <label for="prvi_ogled">Datum in čas prvega ogleda</label>
-    <input type="datetime-local" id="prvi_ogled" name="prvi_ogled"
-           value="<?= htmlspecialchars(
-               $values['prvi_ogled'] !== ''
-                   ? date('Y-m-d\TH:i', strtotime($values['prvi_ogled']))
-                   : '',
-               ENT_QUOTES, 'UTF-8'
-           ) ?>" required>
+    <label>Datum in čas prvega ogleda</label>
+    <div class="date-time-row">
+        <input type="date" id="prvi_ogled_datum" name="prvi_ogled_datum"
+               value="<?= htmlspecialchars($_datePart, ENT_QUOTES, 'UTF-8') ?>" required>
+        <input type="time" id="prvi_ogled_cas" name="prvi_ogled_cas"
+               value="<?= htmlspecialchars($_timePart, ENT_QUOTES, 'UTF-8') ?>" required>
+    </div>
     <?= fieldError($errors, 'prvi_ogled') ?>
 </div>
