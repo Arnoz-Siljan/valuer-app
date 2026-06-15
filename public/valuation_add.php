@@ -39,8 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values['namen_cenitve']     = $_POST['namen_cenitve'] ?? '';
     $values['podlaga_vrednosti'] = $_POST['podlaga_vrednosti'] ?? '';
     $values['premisa_vrednosti'] = $_POST['premisa_vrednosti'] ?? '';
-    $_datum = trim($_POST['prvi_ogled_datum'] ?? '');
-    $_cas   = trim($_POST['prvi_ogled_cas']   ?? '');
+    $_datum  = trim($_POST['prvi_ogled_datum']   ?? '');
+    $_ura    = trim($_POST['prvi_ogled_ura']    ?? '');
+    $_minuta = trim($_POST['prvi_ogled_minuta'] ?? '');
+    $_cas    = ($_ura !== '' && $_minuta !== '') ? $_ura . ':' . $_minuta : '';
     $values['prvi_ogled'] = ($_datum !== '' && $_cas !== '') ? $_datum . 'T' . $_cas : '';
 
     if ($values['naziv_narocnika'] === '')
