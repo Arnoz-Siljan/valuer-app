@@ -1,0 +1,11 @@
+# DB credentials
+config/db.php
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
