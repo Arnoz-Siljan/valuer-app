@@ -119,11 +119,30 @@ function clearFieldError(field) {
     let activeFocus   = -1;
 
     function formatAddress(feature) {
-        const p      = feature.properties;
-        const street = [p.street, p.housenumber].filter(Boolean).join(' ');
-        const place  = street || p.name || '';
-        const city   = [p.postcode, p.city || p.county].filter(Boolean).join(' ');
-        return [place, city].filter(Boolean).join(', ');
+        const p = feature.properties;
+        // House-level result: has both street and housenumber
+        if (p.street && p.housenumber) {
+            const city = [p.postcode, p.city || p.county].filter(Boolean).join(' ');
+            return [p.street + ' ' + p.housenumber, city].filter(Boolean).join(', ');
+        }
+        // Street-only result: name is the street name
+        if (p.type === 'street' || (!p.housenumber && p.name)) {
+            const city = [p.postcode, p.city || p.county].filter(Boolean).join(' ');
+            return [p.street || p.name, city].filter(Boolean).join(', ');
+        }
+        // Fallback: postcode + city
+        return [p.postcode, p.city || p.name].filter(Boolean).join(' ');
+    }
+
+    // Deduplicate suggestions by formatted text
+    function dedupe(features) {
+        const seen = new Set();
+        return features.filter(f => {
+            const t = formatAddress(f);
+            if (!t || seen.has(t)) return false;
+            seen.add(t);
+            return true;
+        });
     }
 
     function initAutocomplete(input) {
@@ -167,7 +186,7 @@ function clearFieldError(field) {
                     const url = `${PHOTON}?q=${encodeURIComponent(q)}&limit=6&lang=en&bbox=${SI_BBOX}`;
                     const res  = await fetch(url);
                     const data = await res.json();
-                    const features = data.features || [];
+                    const features = dedupe(data.features || []);
 
                     list.innerHTML = '';
                     if (!features.length) { closeList(); return; }
