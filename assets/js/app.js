@@ -109,19 +109,21 @@ function clearFieldError(field) {
     field.parentElement.querySelector('.error-msg-js')?.remove();
 }
 
-// ===== Address Autocomplete (Nominatim / OpenStreetMap, Slovenia) =====
+// ===== Address Autocomplete (Photon / OpenStreetMap, Slovenia) =====
 (function () {
-    const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
+    // Photon supports partial/prefix queries unlike Nominatim.
+    // bbox limits results to Slovenia's bounding box.
+    const PHOTON = 'https://photon.komoot.io/api/';
+    const SI_BBOX = '13.38,45.42,16.61,46.88';
     let debounceTimer = null;
     let activeFocus   = -1;
 
-    function formatAddress(place) {
-        const a = place.address || {};
-        const road    = [a.road, a.house_number].filter(Boolean).join(' ');
-        const city    = a.city || a.town || a.village || a.municipality || '';
-        const postcode = a.postcode || '';
-        return [road, postcode + (postcode && city ? ' ' : '') + city]
-            .filter(Boolean).join(', ') || place.display_name;
+    function formatAddress(feature) {
+        const p      = feature.properties;
+        const street = [p.street, p.housenumber].filter(Boolean).join(' ');
+        const place  = street || p.name || '';
+        const city   = [p.postcode, p.city || p.county].filter(Boolean).join(' ');
+        return [place, city].filter(Boolean).join(', ');
     }
 
     function initAutocomplete(input) {
@@ -162,15 +164,15 @@ function clearFieldError(field) {
 
             debounceTimer = setTimeout(async () => {
                 try {
-                    const url = `${NOMINATIM}?q=${encodeURIComponent(q)}`
-                        + `&format=json&addressdetails=1&countrycodes=si&limit=6&accept-language=sl`;
-                    const res  = await fetch(url, { headers: { 'Accept-Language': 'sl' } });
+                    const url = `${PHOTON}?q=${encodeURIComponent(q)}&limit=6&lang=en&bbox=${SI_BBOX}`;
+                    const res  = await fetch(url);
                     const data = await res.json();
+                    const features = data.features || [];
 
                     list.innerHTML = '';
-                    if (!data.length) { closeList(); return; }
+                    if (!features.length) { closeList(); return; }
 
-                    data.forEach(place => {
+                    features.forEach(place => {
                         const text = formatAddress(place);
                         const li   = document.createElement('li');
                         li.className   = 'autocomplete-item';
