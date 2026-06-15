@@ -57,17 +57,39 @@ function selectOptions(array $options, string $selected): string {
 </div>
 
 <?php
-$_ts       = ($values['prvi_ogled'] !== '') ? strtotime($values['prvi_ogled']) : null;
-$_datePart = $_ts ? date('Y-m-d', $_ts) : '';
-$_timePart = $_ts ? date('H:i',   $_ts) : '';
+$_ts         = ($values['prvi_ogled'] !== '') ? strtotime($values['prvi_ogled']) : null;
+$_datePart   = $_ts ? date('Y-m-d', $_ts) : '';
+$_hourPart   = $_ts ? (int) date('H', $_ts) : -1;
+$_minutePart = $_ts ? (int) date('i', $_ts) : -1;
+// Round stored minute to nearest 5 for the picker
+$_minutePart = $_minutePart >= 0 ? (int) round($_minutePart / 5) * 5 % 60 : -1;
 ?>
 <div class="form-group <?= isset($errors['prvi_ogled']) ? 'has-error' : '' ?>">
     <label>Datum in čas prvega ogleda</label>
     <div class="date-time-row">
         <input type="date" id="prvi_ogled_datum" name="prvi_ogled_datum"
                value="<?= htmlspecialchars($_datePart, ENT_QUOTES, 'UTF-8') ?>" required>
-        <input type="time" id="prvi_ogled_cas" name="prvi_ogled_cas"
-               value="<?= htmlspecialchars($_timePart, ENT_QUOTES, 'UTF-8') ?>" required>
+        <div class="time-selects">
+            <select id="prvi_ogled_ura" name="prvi_ogled_ura" required>
+                <option value="">UU</option>
+                <?php for ($h = 0; $h < 24; $h++): ?>
+                    <option value="<?= sprintf('%02d', $h) ?>"
+                        <?= $_hourPart === $h ? 'selected' : '' ?>>
+                        <?= sprintf('%02d', $h) ?>
+                    </option>
+                <?php endfor; ?>
+            </select>
+            <span class="time-sep">:</span>
+            <select id="prvi_ogled_minuta" name="prvi_ogled_minuta" required>
+                <option value="">MM</option>
+                <?php for ($m = 0; $m < 60; $m += 5): ?>
+                    <option value="<?= sprintf('%02d', $m) ?>"
+                        <?= $_minutePart === $m ? 'selected' : '' ?>>
+                        <?= sprintf('%02d', $m) ?>
+                    </option>
+                <?php endfor; ?>
+            </select>
+        </div>
     </div>
     <?= fieldError($errors, 'prvi_ogled') ?>
 </div>

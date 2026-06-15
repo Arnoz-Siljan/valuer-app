@@ -126,9 +126,11 @@ main.container { padding-top: 2rem; padding-bottom: 3rem; flex: 1; }
 
 .form-actions { display: flex; gap: .75rem; margin-top: 1.5rem; }
 
-.date-time-row { display: flex; gap: .75rem; }
-.date-time-row input[type="date"] { flex: 1.4; }
-.date-time-row input[type="time"] { flex: 1; }
+.date-time-row { display: flex; gap: .75rem; align-items: center; }
+.date-time-row input[type="date"] { flex: 1.6; }
+.time-selects { display: flex; align-items: center; gap: .3rem; flex: 1; }
+.time-selects select { flex: 1; }
+.time-sep { font-weight: 600; color: var(--color-muted); font-size: 1.1rem; }
 
 /* ===== Address Autocomplete ===== */
 .autocomplete-wrapper { position: relative; display: block; }
