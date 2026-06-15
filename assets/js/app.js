@@ -108,3 +108,109 @@ function clearFieldError(field) {
     field.closest('.form-group')?.classList.remove('has-error');
     field.parentElement.querySelector('.error-msg-js')?.remove();
 }
+
+// ===== Address Autocomplete (Nominatim / OpenStreetMap, Slovenia) =====
+(function () {
+    const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
+    let debounceTimer = null;
+    let activeFocus   = -1;
+
+    function formatAddress(place) {
+        const a = place.address || {};
+        const road    = [a.road, a.house_number].filter(Boolean).join(' ');
+        const city    = a.city || a.town || a.village || a.municipality || '';
+        const postcode = a.postcode || '';
+        return [road, postcode + (postcode && city ? ' ' : '') + city]
+            .filter(Boolean).join(', ') || place.display_name;
+    }
+
+    function initAutocomplete(input) {
+        // Wrap input so we can absolutely position the dropdown under it
+        const wrapper = document.createElement('div');
+        wrapper.className = 'autocomplete-wrapper';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        const list = document.createElement('ul');
+        list.className = 'autocomplete-list';
+        wrapper.appendChild(list);
+
+        function closeList() {
+            list.innerHTML = '';
+            list.hidden = true;
+            activeFocus = -1;
+        }
+
+        function highlightItem(items) {
+            items.forEach((li, i) =>
+                li.classList.toggle('autocomplete-active', i === activeFocus)
+            );
+            if (activeFocus >= 0) items[activeFocus]?.scrollIntoView({ block: 'nearest' });
+        }
+
+        function pickItem(text) {
+            input.value = text;
+            closeList();
+            // Clear any validation error on this field
+            clearFieldError(input);
+        }
+
+        input.addEventListener('input', () => {
+            const q = input.value.trim();
+            clearTimeout(debounceTimer);
+            if (q.length < 3) { closeList(); return; }
+
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const url = `${NOMINATIM}?q=${encodeURIComponent(q)}`
+                        + `&format=json&addressdetails=1&countrycodes=si&limit=6&accept-language=sl`;
+                    const res  = await fetch(url, { headers: { 'Accept-Language': 'sl' } });
+                    const data = await res.json();
+
+                    list.innerHTML = '';
+                    if (!data.length) { closeList(); return; }
+
+                    data.forEach(place => {
+                        const text = formatAddress(place);
+                        const li   = document.createElement('li');
+                        li.className   = 'autocomplete-item';
+                        li.textContent = text;
+                        // mousedown fires before blur so we can pick before the list closes
+                        li.addEventListener('mousedown', e => { e.preventDefault(); pickItem(text); });
+                        list.appendChild(li);
+                    });
+
+                    list.hidden = false;
+                    activeFocus = -1;
+                } catch (_) { closeList(); }
+            }, 350);
+        });
+
+        input.addEventListener('keydown', e => {
+            const items = [...list.querySelectorAll('.autocomplete-item')];
+            if (!items.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeFocus = Math.min(activeFocus + 1, items.length - 1);
+                highlightItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeFocus = Math.max(activeFocus - 1, 0);
+                highlightItem(items);
+            } else if (e.key === 'Enter' && activeFocus >= 0) {
+                e.preventDefault();
+                pickItem(items[activeFocus].textContent);
+            } else if (e.key === 'Escape') {
+                closeList();
+            }
+        });
+
+        input.addEventListener('blur', () => setTimeout(closeList, 150));
+        closeList(); // start hidden
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const field = document.getElementById('naslov_narocnika');
+        if (field) initAutocomplete(field);
+    });
+})();
